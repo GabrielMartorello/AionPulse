@@ -1,0 +1,86 @@
+name: Windows beta release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release.yml]
+permissions:
+  contents: read
+concurrency:
+  group: windows-beta-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install build dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt -r requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+      - name: Validate source
+        run: |
+          python -m unittest discover -s tests -q
+          if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
+          python -m ruff check .
+          if ($LASTEXITCODE -ne 0) { throw 'Lint failed' }
+          python -m ruff format --check .
+          if ($LASTEXITCODE -ne 0) { throw 'Formatting failed' }
+      - name: Build installer
+        run: |
+          $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (!(Test-Path -LiteralPath $compiler)) { throw 'Inno Setup 6 missing from runner' }
+          ./build-installer.ps1 -Python (Get-Command python).Source -Compiler $compiler -OutputDirectory "$PWD/dist/release"
+      - name: Validate bundled runtime and prepare assets
+        run: |
+          $report = Join-Path $env:RUNNER_TEMP 'aionpulse-smoke.json'
+          $process = Start-Process -FilePath "$PWD/build/installer/dist/AionPulse/AionPulse.exe" -ArgumentList '--self-test', $report -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Bundled runtime test failed' }
+          if (!(Get-Content -LiteralPath $report -Raw | ConvertFrom-Json).passed) { throw 'Smoke report failed' }
+          python export-source.py dist/release/AionPulse-source.zip
+          if ($LASTEXITCODE -ne 0) { throw 'Source export failed' }
+          $lines = foreach ($name in @('AionPulse-Setup-0.1.0-beta.1-x64.exe', 'AionPulse-source.zip')) {
+            $hash = Get-FileHash -LiteralPath "dist/release/$name" -Algorithm SHA256
+            "$($hash.Hash.ToLower())  $name"
+          }
+          $lines | Set-Content -LiteralPath dist/release/AionPulse-SHA256SUMS.txt -Encoding ascii
+      - name: Publish beta release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          $tag = 'v0.1.0-beta.1'
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Release already exists; refusing to replace published assets' }
+          $notes = @'
+          Primeira versão beta do AionPulse para Windows x64.
+
+          Medidor de dano, cura e dano recebido, com overlay, idioma pt-BR/inglês e modo inicial Tudo.
+
+          Baixe AionPulse-Setup-0.1.0-beta.1-x64.exe. Python e as bibliotecas acompanham o instalador. Se necessário, o assistente baixa Npcap diretamente do fornecedor e abre a instalação oficial.
+
+          Versão beta: a identificação da party depende dos pacotes observados. Dano recebido inclui dano à vida e absorção comprovada; cura não distingue sobrecura.
+
+          O instalador ainda não possui assinatura digital e pode gerar alertas do SmartScreen. Não desative seu antivírus. Confira os hashes SHA-256 no arquivo incluído.
+
+          Código fonte e licenças acompanham o pacote. Autor: @GabrielMartorello.
+          '@
+          $notes | Set-Content -LiteralPath "$env:RUNNER_TEMP/release-notes.md" -Encoding utf8
+          gh release create $tag --target $env:RELEASE_COMMIT --title 'AionPulse 0.1.0 Beta 1' --prerelease --draft --notes-file "$env:RUNNER_TEMP/release-notes.md" dist/release/AionPulse-Setup-0.1.0-beta.1-x64.exe dist/release/AionPulse-source.zip dist/release/AionPulse-SHA256SUMS.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }
+          gh release edit $tag --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
+
