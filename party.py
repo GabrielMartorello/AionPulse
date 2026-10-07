@@ -229,4 +229,3 @@ def resolve_party_roster(roster, names, me):
     if me not in members or len(members) != len(resolved):
         return None
     return resolved
-

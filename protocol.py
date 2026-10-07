@@ -303,4 +303,3 @@ class TcpStream:
             if pending_seq > self.next_seq:
                 break
             self.feed(pending_seq % 2**32, self.pending.pop(pending_seq))
-

@@ -98,4 +98,3 @@ class IdentityFormatTests(unittest.TestCase):
     def test_vacant_slot_finishes_complete_roster(self):
         vacant = bytes([0, 2]) + bytes(9)
         self.assertEqual(party_roster(roster([member(1, "Player"), vacant])), [(0, "Player", 1)])
-

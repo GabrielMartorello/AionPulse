@@ -176,4 +176,3 @@ class Capture:
 
     def stop(self):
         self.stop_event.set()
-
