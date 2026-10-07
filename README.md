@@ -92,4 +92,3 @@ Entradas e listas completas de party atualizam o grupo sem combate. Ao iniciar s
 ## Licença
 
 GPL-3.0-only. O código adaptado e as referências estão em [THIRD_PARTY.md](THIRD_PARTY.md). O projeto não é afiliado à NCSOFT nem aos projetos de referência. A logo original do AionPulse faz parte dos recursos deste projeto; não é uma marca oficial do jogo.
-
