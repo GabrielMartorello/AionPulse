@@ -22,7 +22,16 @@ Party, recursos de vida, layouts defensivos e pools de escudo foram adaptados/co
 - https://github.com/cloris-chan/Aion2Flow/blob/main/src/Aion2Flow.SceneRuntime/Combat/CombatEvidence.cs
 - https://github.com/cloris-chan/Aion2Flow/blob/main/src/Aion2Flow.SceneRuntime/Canonicalization/PeriodicPoolCanonicalizer.cs
 
-## Dependências
+## A2Tools DPS Meter — GPL-3.0
+
+Os registros de identidade com máscara de presença e a lista de party `02 97` foram adaptados de taengu/A2Tools-DPS-Meter, commit `fd096f089735088909561c624cd4c958d187dcf2`:
+
+- https://github.com/taengu/A2Tools-DPS-Meter/blob/fd096f089735088909561c624cd4c958d187dcf2/src-tauri/src/capture/stream_processor.rs (`scan_masked_identity`, `parse_party_roster_at` e validações de nomes).
+- https://github.com/taengu/A2Tools-DPS-Meter/blob/fd096f089735088909561c624cd4c958d187dcf2/LICENSE
+
+As adaptações mantêm os parsers anteriores como compatibilidade. Não foram incorporados os uploads, serviços externos, fontes ou recursos gráficos daquele projeto. Dados de teste novos são sintéticos.
+
+## Dependências de execução e desenvolvimento
 
 - python-lz4 4.4.5: BSD. Instalado a partir de requirements.txt, não vendorizado neste repositório.
 - Python/Tkinter: licenças dos respectivos projetos, não redistribuídos.
@@ -34,3 +43,4 @@ Consultado em 06/10/2026. A seleção de variantes de autocura também foi corro
 ## Runtime do instalador
 
 O pacote Windows inclui Python (PSF), Tcl/Tk, lz4 e o bootloader PyInstaller (GPL com exceção do bootloader). As licenças são incluídas em _internal/licenses. A licença Tcl 8.6.12 vem de https://github.com/tcltk/tcl/blob/core-8-6-12/license.terms. O Npcap não é redistribuído no pacote; o assistente oferece seu download direto de https://npcap.com/.
+

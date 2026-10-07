@@ -89,6 +89,8 @@ Tests use synthetic data and protocol fixtures. They do not require a game accou
 
 ## Known limitations
 
+The current source includes additional identity and party roster formats adapted from A2Tools. See [the improvements and validation status](docs/identity-improvements.md). The Beta 1 installer remains unchanged and does not include these new changes.
+
 Party recovery without combat correlates remote party identity (`1C92`) with the persistent identity block in `4536`, using character and server identifiers. Your own character does not need to be identified first. This association has been validated for the formats observed in this beta. If the meter starts after a member's identity packet and the game does not resend it, that member's name still requires another observation. Reset processes queued identity and party updates before clearing counters.
 
 Recognized packet formats are experimental and may change between game versions or regions. Not all skills or formats are covered. Healing is the amount reported in packets; it does not distinguish effective healing from overhealing. Generic HP changes are not treated as healing.

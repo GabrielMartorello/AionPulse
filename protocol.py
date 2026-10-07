@@ -100,7 +100,7 @@ def damage_events(data):
     return events
 
 
-def nickname(data):
+def _legacy_nickname(data):
 
     if data[:2] not in (b"\x33\x36", b"\x45\x36", b"\x04\x8d"):
         return None
@@ -149,6 +149,58 @@ def nickname(data):
     except (ValueError, IndexError):
         pass
     return None
+
+
+def identity_records(data):
+    records = []
+    offset = 0
+    while offset + 8 < len(data) and len(records) < 128:
+        opcode = data[offset : offset + 2]
+        if opcode not in (b"\x33\x36", b"\x44\x36", b"\x45\x36"):
+            offset += 1
+            continue
+        try:
+            actor, pos = varint(data, offset + 2)
+            gate = pos + 4
+            size = data[gate + 1]
+            end = gate + 2 + size
+            if not 0 < actor <= 9_999_999 or not data[gate] & 1 or not 1 <= size <= 48:
+                offset += 1
+                continue
+            name = data[gate + 2 : end].decode("utf-8")
+            if (
+                end > len(data)
+                or not 1 <= len(name) <= 12
+                or not all(c.isalnum() for c in name)
+                or not any(c.isalpha() for c in name)
+            ):
+                offset += 1
+                continue
+            records.append(((actor, name, opcode == b"\x33\x36"), data[offset:]))
+            offset = end
+        except (ValueError, IndexError, UnicodeError):
+            offset += 1
+    legacy = _legacy_nickname(data)
+    if legacy and not any(record[0][0] == legacy[0] for record in records):
+        records.insert(0, (legacy, data))
+    by_actor = {}
+    for player, _ in records:
+        by_actor.setdefault(player[0], set()).add(player[1])
+    self_ids = {player[0] for player, _ in records if player[2]}
+    seen = set()
+    valid = []
+    for player, payload in records:
+        if len(by_actor[player[0]]) != 1 or (player[2] and len(self_ids) != 1):
+            continue
+        if player not in seen:
+            seen.add(player)
+            valid.append((player, payload))
+    return valid
+
+
+def nickname(data):
+    records = identity_records(data)
+    return records[0][0] if records else None
 
 
 class Framer:
@@ -251,3 +303,4 @@ class TcpStream:
             if pending_seq > self.next_seq:
                 break
             self.feed(pending_seq % 2**32, self.pending.pop(pending_seq))
+

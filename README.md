@@ -83,6 +83,8 @@ Os testes usam dados sintéticos e fixtures de protocolo. Não exigem uma conta 
 
 ## Limites conhecidos
 
+O código atual inclui novos formatos de identidade e lista de party adaptados do A2Tools. Veja [as melhorias e o estado da validação](docs/identity-improvements.md). O instalador Beta 1 permanece como publicado e não inclui esses ajustes novos.
+
 A recuperação sem combate também correlaciona a identidade remota de party (`1C92`) com o bloco de identidade permanente em `4536`, usando personagem e servidor, sem exigir que seu personagem tenha sido identificado primeiro. Essa associação foi validada nos formatos observados nesta beta; se o medidor iniciar depois do pacote de identidade de um integrante e esse pacote não for reenviado, o nome ainda depende de uma nova observação desse jogador. O botão Reiniciar processa as identidades e mudanças de party que estiverem na fila antes de limpar os contadores.
 
 Os formatos reconhecidos são experimentais e podem mudar entre versões/regiões do jogo. O medidor não cobre todas as habilidades ou formatos. Cura é a quantidade informada pelos pacotes; não distingue cura efetiva de overheal. Não inferimos cura por alterações genéricas de HP.
@@ -94,3 +96,4 @@ Entradas e listas completas de party atualizam o grupo sem combate. Ao iniciar s
 ## Licença
 
 GPL-3.0-only. O código adaptado e as referências estão em [THIRD_PARTY.md](THIRD_PARTY.md). O projeto não é afiliado à NCSOFT nem aos projetos de referência. A logo original do AionPulse faz parte dos recursos deste projeto; não é uma marca oficial do jogo.
+

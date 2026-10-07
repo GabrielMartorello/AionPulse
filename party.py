@@ -102,6 +102,8 @@ def party_snapshot(data):
 
 def party_roster(data):
 
+    if data[:2] == b"\x02\x97":
+        return named_party_roster(data)
     if data[:2] != b"\x00\x92":
         return None
     body = data[2:]
@@ -133,6 +135,84 @@ def party_roster(data):
     return rows
 
 
+def named_party_roster(data):
+    if data[:2] != b"\x02\x97":
+        return None
+    try:
+        pos = 6
+        size = data[pos]
+        pos += 1
+        if not 1 <= size <= 40:
+            return None
+        label = data[pos : pos + size].decode("utf-8")
+        if len(data[pos : pos + size]) != size or not label.strip() or not label.isprintable():
+            return None
+        pos += size
+        capacity = data[pos]
+        pos += 18
+        count, pos = varint(data, pos)
+        if not 1 <= count <= capacity <= 12:
+            return None
+        rows = []
+        for index in range(count):
+            if pos + 11 > len(data):
+                return None
+            slot = data[pos + 1]
+            server = int.from_bytes(data[pos + 8 : pos + 10], "little")
+            size = data[pos + 10]
+            if not 1 <= slot <= capacity:
+                return None
+            if size == 0:
+                if data[pos] != 0:
+                    return None
+                break
+            if not 1 <= server <= 9999 or not 1 <= size <= 40 or pos + 11 + size + 12 > len(data):
+                return None
+            name = data[pos + 11 : pos + 11 + size].decode("utf-8")
+            if (
+                not 1 <= len(name) <= 12
+                or not all(c.isalnum() for c in name)
+                or not any(c.isalpha() for c in name)
+            ):
+                return None
+            pos += 11 + size
+            _, level, gear = struct.unpack_from("<III", data, pos)
+            if not 1 <= level <= 200 or gear > 1_000_000:
+                return None
+            pos += 12
+            anchors = [
+                candidate
+                for candidate in range(pos, min(pos + 11, len(data) - 12))
+                if int.from_bytes(data[candidate : candidate + 2], "little") == server
+                and int.from_bytes(data[candidate + 5 : candidate + 13], "little") <= 100_000_000
+            ]
+            if len(anchors) != 1:
+                return None
+            pos = anchors[0] + 13
+            rows.append((0, name, slot))
+            if index + 1 == count:
+                break
+            candidates = [
+                candidate
+                for candidate in range(pos, min(pos + 33, len(data) - 10))
+                if data[candidate + 1] == slot + 1
+                and (
+                    1 <= int.from_bytes(data[candidate + 8 : candidate + 10], "little") <= 9999
+                    or (data[candidate] == 0 and data[candidate + 10] == 0)
+                )
+                and data[candidate + 10] <= 40
+                and candidate + 11 + data[candidate + 10] <= len(data)
+            ]
+            if len(candidates) != 1:
+                return None
+            pos = candidates[0]
+        if len({row[1] for row in rows}) != len(rows) or len({row[2] for row in rows}) != len(rows):
+            return None
+        return rows or None
+    except (ValueError, IndexError, UnicodeError, struct.error):
+        return None
+
+
 def resolve_party_roster(roster, names, me):
 
     if roster is None or me is None:
@@ -149,3 +229,4 @@ def resolve_party_roster(roster, names, me):
     if me not in members or len(members) != len(resolved):
         return None
     return resolved
+

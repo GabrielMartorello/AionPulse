@@ -4,7 +4,7 @@ import threading
 import time
 from region import detect_region
 from i18n import tr
-from protocol import TcpStream, damage_events, nickname
+from protocol import TcpStream, damage_events, identity_records
 from party import party_members, party_roster
 from party_identity import PartyIdentity
 from identity_cache import connection_key
@@ -121,10 +121,11 @@ class Capture:
         roster = party_roster(payload)
         if roster is not None:
             self.publish("party_roster", roster)
-        name = nickname(payload)
-        if name:
+        for name, identity_payload in identity_records(payload):
             self.publish("name", name)
-        for member in self.party_identity.observe(payload, name):
+            for member in self.party_identity.observe(identity_payload, name):
+                self.publish("party", member)
+        for member in self.party_identity.observe(payload):
             self.publish("party", member)
         if payload[:2] not in (b"\x04\x38", b"\x05\x38"):
             return
@@ -175,3 +176,4 @@ class Capture:
 
     def stop(self):
         self.stop_event.set()
+
