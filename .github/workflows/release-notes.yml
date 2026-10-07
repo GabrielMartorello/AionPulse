@@ -1,0 +1,24 @@
+name: Update beta release presentation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - docs/release-notes-beta-1.md
+      - .github/workflows/release-notes.yml
+permissions:
+  contents: read
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Update release description
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit v0.1.0-beta.1 --notes-file docs/release-notes-beta-1.md
