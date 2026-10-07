@@ -1,6 +1,8 @@
 # AionPulse
 
-Medidor local de combate para AION2 com captura passiva via Npcap, interface em Python/Tkinter e overlay compacto para acompanhar o grupo.
+**Português (Brasil)** · [English](README.en.md)
+
+Acompanhe o desempenho do seu grupo no AION2 com um overlay compacto e interface em português e inglês. Compare dano causado, cura realizada e dano recebido com barras por jogador, totais do combate e taxas dos últimos cinco segundos.
 
 ![Ícone do AionPulse](assets/aionpulse-64.png)
 
@@ -18,7 +20,7 @@ Consulte o [guia de identificação e party](docs/guia-do-usuario.md) se a lista
 
 ## Instalação pelo instalador
 
-Execute `AionPulse-Setup-0.1.0-beta.1-x64.exe`. Python, Tcl/Tk e lz4 já estão incluídos; não é necessário configurar Python ou pip. O assistente oferece o download do Npcap pelo site oficial se ele estiver faltando, cria atalhos e inclui um desinstalador. Veja o [guia de instalação](docs/instalacao.md).
+[Baixe o instalador para Windows](https://github.com/GabrielMartorello/AionPulse/releases/tag/v0.1.0-beta.1) e execute `AionPulse-Setup-0.1.0-beta.1-x64.exe`. Python, Tcl/Tk e lz4 já estão incluídos; não é necessário configurar Python ou pip. O assistente oferece o download do Npcap pelo site oficial se ele estiver faltando, cria atalhos e inclui um desinstalador. Veja o [guia de instalação](docs/instalacao.md).
 
 ### Requisitos para executar pelo código-fonte
 
